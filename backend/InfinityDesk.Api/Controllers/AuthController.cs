@@ -2,11 +2,13 @@ using InfinityDesk.Api.Data;
 using InfinityDesk.Api.DTOs;
 using InfinityDesk.Api.Models;
 using InfinityDesk.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfinityDesk.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase

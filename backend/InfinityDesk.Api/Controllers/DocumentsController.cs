@@ -1,12 +1,15 @@
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using InfinityDesk.Api.Data;
 using InfinityDesk.Api.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace InfinityDesk.Api.Controllers
 {
+    [Authorize] //znaci da svaki endpoint u ovom kontroleru zahteva validan JWT token
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentsController : ControllerBase
@@ -19,9 +22,10 @@ namespace InfinityDesk.Api.Controllers
         }
 
         // GET: api/documents/user/1
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetByUser(int userId)
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
+            var userId = GetUserId();
             var documents = await this.context.Documents
                 .Where(d => d.UserId == userId)
                 .ToListAsync();
@@ -33,8 +37,8 @@ namespace InfinityDesk.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var document = await this.context.Documents.FindAsync(id);
-
+            var userId = GetUserId();
+            var document = await this.context.Documents.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (document == null)
             {
                 return NotFound();
@@ -44,17 +48,15 @@ namespace InfinityDesk.Api.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> Upload(IFormFile file, [FromForm] int userId)
+        public async Task<IActionResult> Upload(IFormFile file)
         {
-
-            // IFormFile je ASP.NET tip koji predstavlja fajl koji je korisnik poslao
-            // [FromForm] znaci da userId dolazi iz form podataka (key value parovi), ne iz URL-a
 
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Nije odabran fajl");
             }
 
+            var userId = GetUserId();
 
             // Pravljenje putanje do foldera wwwroot/uploads
             // GetCurrentDirectory() vraca folder gde se projekat izvrsava
@@ -94,41 +96,35 @@ namespace InfinityDesk.Api.Controllers
             return Ok(document);
         }
 
-        // PUT: api/documents/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Document updated)
-        {
-            var document = await this.context.Documents.FindAsync(id);
-
-            if (document == null)
-            {
-                return NotFound();
-            }
-
-            document.FileName = updated.FileName;
-            document.StoredFileName = updated.StoredFileName;
-
-            await this.context.SaveChangesAsync();
-
-            return Ok(document);
-        }
 
         // DELETE: api/documents/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var document = await this.context.Documents.FindAsync(id);
+            var userId = GetUserId();
+            var document = await this.context.Documents.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (document == null)
             {
                 return NotFound();
             }
 
+            //brisanje fajla sa diska
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", document.StoredFileName);
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
             this.context.Documents.Remove(document);
-
             await this.context.SaveChangesAsync();
-
             return NoContent();
         }
+
+        private int GetUserId()
+        {
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
     }
 }
