@@ -43,12 +43,52 @@ namespace InfinityDesk.Api.Controllers
             return Ok(document);
         }
 
-        // POST: api/documents
-        [HttpPost]
-        public async Task<IActionResult> Create(Document document)
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload(IFormFile file, [FromForm] int userId)
         {
-            this.context.Documents.Add(document);
 
+            // IFormFile je ASP.NET tip koji predstavlja fajl koji je korisnik poslao
+            // [FromForm] znaci da userId dolazi iz form podataka (key value parovi), ne iz URL-a
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Nije odabran fajl");
+            }
+
+
+            // Pravljenje putanje do foldera wwwroot/uploads
+            // GetCurrentDirectory() vraca folder gde se projekat izvrsava
+            // Path.Combine spaja delove putanje na ispravan nacin za svaki OS
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+            // Kreira folder ako ne postoji, ako postoji ne radi nista
+            Directory.CreateDirectory(uploadsFolder);
+
+
+            // Guid.NewGuid() generise jedinstveni ID
+            // da ne bi doslo do konflikta ako dva korisnika uploadaju fajl istog imena!!!!!!
+            // Path.GetExtension uzima ekstenziju originalnog fajla npr. S.pdf
+            // rezultat je ID.pdf
+            var storedFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+            // Puna putanja do fajla na disku npr. "C: .../wwwroot/uploads/ID.pdf
+            var filePath = Path.Combine(uploadsFolder, storedFileName);
+
+            // Otvara stream ka fajlu na disku i kopira sadrzaj
+            // using osigurava da se stream zatvori nakon kopiranja, oslobadja memoriju
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var document = new Document
+            {
+                FileName = file.FileName, //originalno ime fajla koje je korisnik imao na svom racunaru
+                StoredFileName = storedFileName, //ime fajla kako je sacuvan na serveru
+                UserId = userId
+            };
+
+            this.context.Documents.Add(document);
             await this.context.SaveChangesAsync();
 
             return Ok(document);

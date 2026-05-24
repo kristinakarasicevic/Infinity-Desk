@@ -19,7 +19,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 
+app.UseStaticFiles(); //dozvoli direktan pristup fajlovima iz wwwroot foldera preko URL-a
+app.UseHttpsRedirection();
+app.MapControllers();
 app.Run();
 
