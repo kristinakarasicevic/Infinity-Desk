@@ -1,0 +1,53 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Infinity Desk</mat-card-title>
+      <mat-card-subtitle>Prijavi se na svoj nalog</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- [formGroup]="loginForm" povezuje HTML formu sa FormGroup iz TS-a -->
+      <!-- (ngSubmit) je Angularov event koji se okida na submit (Enter ili klik na submit dugme) -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+        <!-- mat-form-field je Material wrapper oko inputa, daje mu lepi izgled, label, error... -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <!-- formControlName mora odgovarati kljucu u fb.group({ username: ... }) -->
+          <input matInput formControlName="username" autocomplete="username">
+          <!-- mat-error se prikazuje samo kad polje ima gresku I kad je dirnuto/poslato -->
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+            Username je obavezan
+          </mat-error>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('minlength')">
+            Username mora imati bar 3 karaktera
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password">
+
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            Password je obavezan
+          </mat-error>
+        </mat-form-field>
+
+        <!-- prikazi error poruku samo ako postoji (npr. nakon neuspesnog logina) -->
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
+        <!-- dugme je disable-ovano dok forma nije validna ILI dok traje loading -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading"
+          class="full-width login-button">
+          {{ isLoading ? 'Prijavljivanje...' : 'Prijavi se' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

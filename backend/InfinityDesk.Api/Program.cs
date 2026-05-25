@@ -28,6 +28,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -36,11 +45,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseCors("AllowAngular");
 app.UseAuthentication(); //ko je korisnik, da li je ulogovan, da li je token validan
 app.UseAuthorization(); //da li korisnik ima pravo da pristupi resursu
 app.UseStaticFiles(); //dozvoli direktan pristup fajlovima iz wwwroot foldera preko URL-a
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();< -- priveremno zakomentarisano da bi sve funkcinisalo (ne mora biti https lokalno)
 app.MapControllers();
 app.Run();
 

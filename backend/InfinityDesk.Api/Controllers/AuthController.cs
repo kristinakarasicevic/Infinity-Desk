@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InfinityDesk.Api.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
