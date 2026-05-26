@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './auth/login/login';
 import { authGuard } from './core/auth-guard';
+import { Shell } from './shared/shell/shell';
 
 export const routes: Routes = [
   // kad korisnik dodje na root, preusmeri ga na /auth/login
@@ -9,9 +10,18 @@ export const routes: Routes = [
   // login stranica — javno dostupna, bez guarda
   { path: 'auth/login', component: Login },
 
-  // notes stranica — zasticena guardom (samo ulogovani korisnici)
-  // privremeno Login kao placeholder
-  { path: 'notes', component: Login, canActivate: [authGuard] },
+  // sve zasticene rute idu KROZ Shell — Shell je "parent", njihov sadrzaj 
+  // se renderuje u Shell-ovom <router-outlet>
+  // canActivate na parent ruti stiti SVE child rute odjednom
+  {
+    path: '',
+    component: Shell,
+    canActivate: [authGuard],
+    children: [
+
+      { path: 'notes', component: Login },
+    ]
+  },
 
   // ako korisnik ukuca nepostojecu rutu, vrati ga na login
   { path: '**', redirectTo: '/auth/login' }

@@ -1,0 +1,35 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <!-- logo / brand sa leve strane -->
+  <span class="brand">
+    <mat-icon>desktop_windows</mat-icon>
+    Infinity Desk
+  </span>
+
+  <!-- spacer gura sve sto je posle njega na desnu stranu -->
+  <span class="spacer"></span>
+
+  <!-- akcije na desnoj strani -->
+  <button mat-icon-button matTooltip="Nova beleska">
+    <mat-icon>note_add</mat-icon>
+  </button>
+
+  <button mat-icon-button matTooltip="Upload fajl">
+    <mat-icon>upload_file</mat-icon>
+  </button>
+
+  <!-- avatar/user meni -->
+  <button mat-icon-button [matMenuTriggerFor]="userMenu">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item disabled>
+      <mat-icon>settings</mat-icon>
+      <span>Podesavanja</span>
+    </button>
+    <button mat-menu-item (click)="onLogout()">
+      <mat-icon>logout</mat-icon>
+      <span>Odjavi se</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>
